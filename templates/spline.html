@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript">
+        window.onload = function () {
+    var dataPoints = [];
+
+    function getDataPointsFromCSV(csv) {
+        var dataPoints = csvLines = points = [];
+        csvLines = csv.split(/[\r?\n|\r|\n]+/);
+
+        for (var i = 0; i < csvLines.length; i++)
+            if (csvLines[i].length > 0) {
+                points = csvLines[i].split(";");
+                datex = new Date(points[0]);
+                //datex.setMonth(datex.getMonth() -1);
+                dataPoints.push({
+                    x: datex,
+                    y: parseFloat(points[1])
+                });
+            }
+        return dataPoints;
+    }
+    $.get("/static/output.csv", function (data) {
+
+        var chart = new CanvasJS.Chart("chartContainer", {
+            theme: "light2", // "light2", "dark1", "dark2"
+            animationEnabled: true, // change to true
+            zoomEnabled: true,
+            title: {
+                text: "Base Monetaria en Pesos"
+            },
+            axisY: {
+                minimum: 1000
+            },
+            axisX: {
+                valueFormatString: "DD-MM-YY",
+                gridThickness: 2,
+                labelAngle: -50
+            },
+            data: [{
+                // Change type to "bar", "area", "spline", "pie",etc.
+                type: "spline",
+                markerType: "circle",
+                markerSize: 1,
+                dataPoints: getDataPointsFromCSV(data)
+            }]
+        });
+        var dpsLength = chart.options.data[0].dataPoints.length;
+        var lastDate = chart.options.data[0].dataPoints[dpsLength-1].x;
+        chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-1,lastDate.getDate());
+        chart.render();
+
+        var renderButtonYear = document.getElementById("renderButtonYear");
+        renderButtonYear.addEventListener("click", editViewportYear);
+
+        var renderButtonMonth = document.getElementById("renderButtonMonth");
+        renderButtonMonth.addEventListener("click", editViewportMonth);
+
+        var renderButtonValue = document.getElementById("renderButtonValue");
+        renderButtonValue.addEventListener("click", editViewportValue);
+
+    function editViewportYear() {
+        var dpsLength = chart.options.data[0].dataPoints.length;
+        var lastDate = chart.options.data[0].dataPoints[dpsLength-1].x;
+        chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-12,lastDate.getDate());
+        chart.render();
+    }
+
+    function editViewportMonth() {
+        var dpsLength = chart.options.data[0].dataPoints.length;
+        var lastDate = chart.options.data[0].dataPoints[dpsLength-1].x;
+        chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-1,lastDate.getDate());
+        chart.render();
+    }
+
+    function editViewportValue() {
+        var dpsLength = chart.options.data[0].dataPoints.length;
+        var lastDate = chart.options.data[0].dataPoints[dpsLength-1].x;
+        xValue = Number(document.getElementById("xValue").value);
+        chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-xValue,lastDate.getDate());
+        chart.render();
+    }
+
+    });
+
+}
+    </script>
+</head>
+<body>
+
+<div id="chartContainer" style="height: 370px; width: 100%;"></div>
+<button id="renderButtonYear">Un Año</button>
+<button id="renderButtonMonth">Un Mes</button>
+<input id="xValue" type="number" step="any" placeholder="Cantidad de Meses">
+<button id="renderButtonValue">Ver</button>
+
+<script src="https://canvasjs.com/assets/script/canvasjs.min.js"> </script>
+
+
+</body>
+</html>

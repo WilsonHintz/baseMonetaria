@@ -1,0 +1,9 @@
+{
+  "import": ["File2","FileA","FileB"],
+  "Element1": {"locator": "one"},
+  "Element2": {"locator": "two"},
+  "__FINDERS__": [
+    {"locator": "..._ELEMENT_NAME_..."},
+    {"locator": "..._ELEMENT_NAME_..."}
+  ]
+}

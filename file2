@@ -1,0 +1,6 @@
+{
+  "__FINDERS__": [
+    {"locator": "..._ELEMENT_NAME_..."},
+    {"locator": "..._ELEMENT_NAME_..."}
+  ]
+}
