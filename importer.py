@@ -5,7 +5,7 @@ import pandas as pd
 
 payload = {
 'fecha_desde':'2000-01-01',
-'fecha_hasta':'2020-03-27',
+'fecha_hasta':'2020-04-01',
 'B1':'Enviar',
 'primeravez':'1',
 'serie':'250',
@@ -43,6 +43,6 @@ df['fecha'] = pd.to_datetime(df.fecha)
 df = df.replace('\/', '-', regex=True).astype(str)
 df = df.replace('\-', ',', regex=True).astype(str)
 
-df.to_csv('/static/output.csv', header=False, index=False, sep=";")
+df.to_csv('static/output.csv', header=False, index=False, sep=";")
 
 
