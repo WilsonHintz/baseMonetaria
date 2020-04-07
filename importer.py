@@ -5,7 +5,7 @@ import pandas as pd
 
 payload = {
 'fecha_desde':'2000-01-01',
-'fecha_hasta':'2020-04-01',
+'fecha_hasta':'2020-04-02',
 'B1':'Enviar',
 'primeravez':'1',
 'serie':'250',
@@ -36,13 +36,18 @@ with open('middle.csv', 'w') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerows(output_rows)
 
-df = pd.read_csv('middle.csv', parse_dates=['fecha'],dayfirst=True, usecols=('fecha', 'Base_Monetaria_Total'))
+#CSV para grafico
+df = pd.read_csv('middle.csv', parse_dates=['fecha'], dayfirst=True, usecols=('fecha', 'Base_Monetaria_Total'))
 df = df.replace('\.', '', regex=True).astype(str)
 df['fecha'] = pd.to_datetime(df.fecha)
-#date
+#Manipulacion de fecha
 df = df.replace('\/', '-', regex=True).astype(str)
 df = df.replace('\-', ',', regex=True).astype(str)
-
 df.to_csv('static/output.csv', header=False, index=False, sep=";")
 
+#CSV para tabla
+df = pd.read_csv('middle.csv', parse_dates=['fecha'], usecols=('fecha', 'Base_Monetaria_Total'))
+df = df.replace('\.', '', regex=True).astype(str)
+df['fecha'] = pd.to_datetime(df.fecha)
+df.to_csv('static/tablaDatos.csv',index=False)
 

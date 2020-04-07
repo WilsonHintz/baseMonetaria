@@ -2,8 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Base Monetaria</title>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href=https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css>
+    <style>
+            table {
+                border-collapse: collapse;
+                border: 2px black solid;
+                font: 12px sans-serif;
+            }
+
+            td {
+                border: 1px black solid;
+                padding: 5px;
+            }
+        </style>
     <script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
     <script type="text/javascript">
         window.onload = function () {
     var dataPoints = [];
@@ -34,21 +51,28 @@
                 text: "Base Monetaria en Pesos"
             },
             axisY: {
-                minimum: 1000
+                minimum: 1000,
+                title: "Base Monetaria Total (Millones pesos)",
+                titleFontSize: 15
             },
             axisX: {
                 valueFormatString: "DD-MM-YY",
                 gridThickness: 2,
-                labelAngle: -50
+                labelAngle: -50,
+                title: "Tiempo",
+                titleFontSize: 15
             },
             data: [{
                 // Change type to "bar", "area", "spline", "pie",etc.
-                type: "spline",
+                type: "splineArea",
                 markerType: "circle",
-                markerSize: 1,
+                markerSize: 4,
+                fillOpacity: .4,
                 dataPoints: getDataPointsFromCSV(data)
             }]
         });
+
+        //Date manipulation
         var dpsLength = chart.options.data[0].dataPoints.length;
         var lastDate = chart.options.data[0].dataPoints[dpsLength-1].x;
         chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-1,lastDate.getDate());
@@ -63,43 +87,103 @@
         var renderButtonValue = document.getElementById("renderButtonValue");
         renderButtonValue.addEventListener("click", editViewportValue);
 
-    function editViewportYear() {
-        var dpsLength = chart.options.data[0].dataPoints.length;
-        var lastDate = chart.options.data[0].dataPoints[dpsLength-1].x;
-        chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-12,lastDate.getDate());
-        chart.render();
-    }
+        function editViewportYear() {
+            var dpsLength = chart.options.data[0].dataPoints.length;
+            var lastDate = chart.options.data[0].dataPoints[dpsLength-1].x;
+            chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-12,lastDate.getDate());
+            chart.render();
+        }
 
-    function editViewportMonth() {
-        var dpsLength = chart.options.data[0].dataPoints.length;
-        var lastDate = chart.options.data[0].dataPoints[dpsLength-1].x;
-        chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-1,lastDate.getDate());
-        chart.render();
-    }
+        function editViewportMonth() {
+            var dpsLength = chart.options.data[0].dataPoints.length;
+            var lastDate = chart.options.data[0].dataPoints[dpsLength-1].x;
+            chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-1,lastDate.getDate());
+            chart.render();
+        }
 
-    function editViewportValue() {
-        var dpsLength = chart.options.data[0].dataPoints.length;
-        var lastDate = chart.options.data[0].dataPoints[dpsLength-1].x;
-        xValue = Number(document.getElementById("xValue").value);
-        chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-xValue,lastDate.getDate());
-        chart.render();
-    }
+        function editViewportValue() {
+            var dpsLength = chart.options.data[0].dataPoints.length;
+            var lastDate = chart.options.data[0].dataPoints[dpsLength-1].x;
+            xValue = Number(document.getElementById("xValue").value);
+            chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-xValue,lastDate.getDate());
+            chart.render();
+        }
+
+        //minimum
+        function syncHandler(e) {
+
+            if (e.trigger === "reset") {
+
+                chart.options.axisX.viewportMinimum = chart.options.axisX.viewportMaximum = null;
+                chart.options.axisY.viewportMinimum = chart.options.axisY.viewportMaximum = null;
+
+                chart.render();
+
+            } else if (chart !== e.chart) {
+
+                chart.options.axisY.viewportMinimum = e.axisY[0].viewportMinimum;
+                chart.options.axisY.viewportMaximum = e.axisY[0].viewportMaximum;
+
+                chart.render();
+            }
+        }
+
+
+
+
 
     });
-
 }
     </script>
+
+    <script>
+    d3.text("/static/tablaDatos.csv", function(data) {
+        var parsedCSV = d3.csv.parseRows(data);
+
+        var container = d3.select("body")
+            .append("table")
+            .attr("id","datos")
+
+            .selectAll("tr")
+                .data(parsedCSV).enter()
+                .append("tr")
+
+            .selectAll("td")
+                .data(function(d) { return d; }).enter()
+                .append("td")
+                .text(function(d) { return d; });
+    });
+
+    $(document).ready(function() {
+        $('#datos').DataTable();
+    } );
+    </script>
+
+
 </head>
 <body>
 
-<div id="chartContainer" style="height: 370px; width: 100%;"></div>
-<button id="renderButtonYear">Un Año</button>
-<button id="renderButtonMonth">Un Mes</button>
-<input id="xValue" type="number" step="any" placeholder="Cantidad de Meses">
-<button id="renderButtonValue">Ver</button>
+
+<!-- Page content -->
+<div class="w3-content w3-padding" style="max-width:1564px">
+
+    <div id="chartContainer" style="height: 370px; width: 100%;"></div>
+
+    <button id="renderButtonYear">Un Año</button>
+    <button id="renderButtonMonth">Un Mes</button>
+    <input id="xValue" type="number" step="any" placeholder="Cantidad de Meses">
+    <button id="renderButtonValue">Ver</button>
+
+
+<!-- End page content -->
+</div>
+
+<!-- Footer -->
+<footer class="w3-center w3-black w3-padding-10">
+  <p>Powered by <a href="https://www.w3schools.com/w3css/default.asp" title="W3.CSS" target="_blank" class="w3-hover-text-green">tuvi</a></p>
+</footer>
+
 
 <script src="https://canvasjs.com/assets/script/canvasjs.min.js"> </script>
-
-
 </body>
 </html>
