@@ -4,13 +4,26 @@
     <meta charset="UTF-8">
     <title>Base Monetaria</title>
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-    <link rel="stylesheet" href=https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css>
 
     <script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+    <script src="https://canvasjs.com/assets/script/canvasjs.min.js"> </script>
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
+    <style>
+          #update-nav {
+      width: 100%;
+      height: 30px;
+    }
+    #range-selector {
+      width: 50%;
+      float: left;
+    }
+    #date-selector {
+      width: 50%;
+      float: right;
+    }
+    </style>
     <script type="text/javascript">
         window.onload = function () {
     var dataPoints = [];
@@ -72,6 +85,9 @@
         chart.render();
         findExtremeDataPointsPassed();
         addTable(chart);
+        //var axisXMin = chart.axisX[0].get("minimum");
+        var axisXMin = chart.axisX[0].get("viewportMinimum");
+        var axisXMax = chart.axisX[0].get("maximum");
 
         var renderButtonYear = document.getElementById("renderButtonYear");
         renderButtonYear.addEventListener("click", editViewportYear);
@@ -108,12 +124,30 @@
             findExtremeDataPointsPassed();
         }
 
+        $( function() {
+              $("#fromDate").val(CanvasJS.formatDate(axisXMin, "DD MMM YYYY"));
+              $("#toDate").val(CanvasJS.formatDate(axisXMax, "DD MMM YYYY"));
+              $("#fromDate").datepicker({dateFormat: "d M yy"});
+              $("#toDate").datepicker({dateFormat: "d M yy"});
+        });
+
+        $("#date-selector").change( function() {
+            var minValue = $( "#fromDate" ).val();
+            var maxValue = $ ( "#toDate" ).val();
+            if(new Date(minValue).getTime() < new Date(maxValue).getTime()){
+                chart.axisX[0].set("minimum", new Date(minValue));
+                chart.axisX[0].set("maximum", new Date(maxValue));
+                chart.render();
+                findExtremeDataPointsPassed();
+            }
+        });
+
         function addTable(chart){
 	        var tableData = "";
 	        for(var i = 0; i < chart.options.data[0].dataPoints.length; i++) {
   		        tableData += "<tr>";
 
-                    tableData += ("<td>" + chart.options.data[0].dataPoints[i].x +"</td>");
+                    tableData += ("<td>" + chart.options.data[0].dataPoints[i].x.toISOString().slice(0, 10) +"</td>");
                     tableData += ("<td>" + chart.options.data[0].dataPoints[i].y +"</td>")
 
                 tableData += "</tr>";
@@ -184,13 +218,12 @@
             return points
         }
     });
+
+
+
 }
     </script>
-    <script>
-    $(document).ready(function() {
-        $('#chartData').DataTable();
-    } );
-    </script>
+
 </head>
 <body>
 
@@ -205,20 +238,29 @@
     <input id="xValue" type="number" step="any" placeholder="Cantidad de Meses">
     <button id="renderButtonValue">Ver</button>
 
+    <div id="update-nav">
+        <div id="date-selector" class="">
+            From:<input type="text" id="fromDate"  class="ui-widget">
+            To:<input type="text" id="toDate"  class="ui-widget">
+        </div>
+    </div>
+
 
 <!-- End page content -->
 </div>
 
-<div id="tableContainer">
-  <table id="chartData" class="display">
+  <table id="chartData" class="display" width="75%">
+  <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Valor</th>
+            </tr>
+        </thead>
   </table>
-</div>
 
 <!-- Footer -->
 <footer class="w3-center w3-black w3-padding-10">
   <p>Powered by <a href="https://www.w3schools.com/w3css/default.asp" title="W3.CSS" target="_blank" class="w3-hover-text-green">tuvi</a></p>
 </footer>
-
-<script src="https://canvasjs.com/assets/script/canvasjs.min.js"> </script>
 </body>
 </html>
