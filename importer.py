@@ -5,7 +5,7 @@ import pandas as pd
 
 payload = {
 'fecha_desde':'2000-01-01',
-'fecha_hasta':'2020-04-02',
+'fecha_hasta':'2020-04-06',
 'B1':'Enviar',
 'primeravez':'1',
 'serie':'250',

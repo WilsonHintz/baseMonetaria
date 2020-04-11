@@ -5,22 +5,12 @@
     <title>Base Monetaria</title>
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <link rel="stylesheet" href=https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css>
-    <style>
-            table {
-                border-collapse: collapse;
-                border: 2px black solid;
-                font: 12px sans-serif;
-            }
 
-            td {
-                border: 1px black solid;
-                padding: 5px;
-            }
-        </style>
     <script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+
     <script type="text/javascript">
         window.onload = function () {
     var dataPoints = [];
@@ -47,13 +37,16 @@
             theme: "light2", // "light2", "dark1", "dark2"
             animationEnabled: true, // change to true
             zoomEnabled: true,
+            rangeChanging: function(e){
+                findExtremeDataPoints(e);
+             },
             title: {
                 text: "Base Monetaria en Pesos"
             },
             axisY: {
-                minimum: 1000,
                 title: "Base Monetaria Total (Millones pesos)",
-                titleFontSize: 15
+                titleFontSize: 15,
+                includeZero: false
             },
             axisX: {
                 valueFormatString: "DD-MM-YY",
@@ -72,11 +65,13 @@
             }]
         });
 
-        //Date manipulation
+        //Date manipulation and initialize
         var dpsLength = chart.options.data[0].dataPoints.length;
         var lastDate = chart.options.data[0].dataPoints[dpsLength-1].x;
-        chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-1,lastDate.getDate());
+        chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-3,lastDate.getDate());
         chart.render();
+        findExtremeDataPointsPassed();
+        addTable(chart);
 
         var renderButtonYear = document.getElementById("renderButtonYear");
         renderButtonYear.addEventListener("click", editViewportYear);
@@ -92,6 +87,7 @@
             var lastDate = chart.options.data[0].dataPoints[dpsLength-1].x;
             chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-12,lastDate.getDate());
             chart.render();
+            findExtremeDataPointsPassed();
         }
 
         function editViewportMonth() {
@@ -99,6 +95,8 @@
             var lastDate = chart.options.data[0].dataPoints[dpsLength-1].x;
             chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-1,lastDate.getDate());
             chart.render();
+            var result = findExtremeDataPointsPassed();
+            console.log(result)
         }
 
         function editViewportValue() {
@@ -107,59 +105,92 @@
             xValue = Number(document.getElementById("xValue").value);
             chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-xValue,lastDate.getDate());
             chart.render();
+            findExtremeDataPointsPassed();
         }
 
-        //minimum
-        function syncHandler(e) {
+        function addTable(chart){
+	        var tableData = "";
+	        for(var i = 0; i < chart.options.data[0].dataPoints.length; i++) {
+  		        tableData += "<tr>";
 
-            if (e.trigger === "reset") {
+                    tableData += ("<td>" + chart.options.data[0].dataPoints[i].x +"</td>");
+                    tableData += ("<td>" + chart.options.data[0].dataPoints[i].y +"</td>")
 
-                chart.options.axisX.viewportMinimum = chart.options.axisX.viewportMaximum = null;
-                chart.options.axisY.viewportMinimum = chart.options.axisY.viewportMaximum = null;
-
-                chart.render();
-
-            } else if (chart !== e.chart) {
-
-                chart.options.axisY.viewportMinimum = e.axisY[0].viewportMinimum;
-                chart.options.axisY.viewportMaximum = e.axisY[0].viewportMaximum;
-
-                chart.render();
+                tableData += "</tr>";
             }
+            $("#chartData").append(tableData)
         }
 
+        function findExtremeDataPoints(e) {
+            var chart = e.chart;
+            var minXIndex = Infinity, maxXIndex = -Infinity;
+            var minDps, maxDps;
+
+            var viewportMinimum = chart.axisX[0].get("viewportMinimum");
+            var viewportMaximum = chart.axisX[0].get("viewportMaximum");
+
+            for(var j = 0; j < chart.options.data[0].dataPoints.length; j++) {
+                if(chart.options.data[0].dataPoints[j].x >= viewportMinimum) {
+                    minXIndex = j;
+                    break;
+                }
+            }
+            for(var j = 0; j < chart.options.data[0].dataPoints.length; j++) {
+                if(chart.options.data[0].dataPoints[j].x <= viewportMaximum) {
+                    maxXIndex = j;
+                }
+            }
+            minDps = chart.options.data[0].dataPoints[minXIndex];
+            maxDps = chart.options.data[0].dataPoints[maxXIndex];
+
+            console.log("Datapoints index: " + minXIndex + ", " + maxXIndex)
+            console.log("Datapoints: "); console.log(minDps); console.log(maxDps)
+            chart.options.axisY.viewportMinimum = (chart.options.data[0].dataPoints[minXIndex].y)*0.90;
+            chart.options.axisY.viewportMaximum = (chart.options.data[0].dataPoints[maxXIndex].y)*1.15;
+            chart.render();
+        }
+
+        function findExtremeDataPointsPassed() {
+            var minXIndex = Infinity, maxXIndex = -Infinity;
+            var minDps, maxDps;
+            var points = [];
+
+            var viewportMinimum = chart.axisX[0].get("viewportMinimum");
+            var viewportMaximum = chart.axisX[0].get("viewportMaximum");
 
 
+            for(var j = 0; j < chart.options.data[0].dataPoints.length; j++) {
+                if(chart.options.data[0].dataPoints[j].x >= viewportMinimum) {
+                    minXIndex = j;
+                    break;
+                }
+            }
+            for(var j = 0; j < chart.options.data[0].dataPoints.length; j++) {
+                if(chart.options.data[0].dataPoints[j].x <= viewportMaximum) {
+                    maxXIndex = j;
+                }
+            }
+            minDps = chart.options.data[0].dataPoints[minXIndex];
+            maxDps = chart.options.data[0].dataPoints[maxXIndex];
 
+            console.log("Datapoints index: " + minXIndex + ", " + maxXIndex)
+            console.log("Datapoints: "); console.log(minDps); console.log(maxDps)
+            chart.options.axisY.viewportMinimum = (chart.options.data[0].dataPoints[minXIndex].y)*0.90;
+            chart.options.axisY.viewportMaximum = (chart.options.data[0].dataPoints[maxXIndex].y)*1.15;
+            points.push({minO:chart.options.data[0].dataPoints[minXIndex].y, minC: chart.options.axisY.viewportMinimum})
+            points.push(chart.options.axisY.viewportMaximum)
 
+            chart.render();
+            return points
+        }
     });
 }
     </script>
-
     <script>
-    d3.text("/static/tablaDatos.csv", function(data) {
-        var parsedCSV = d3.csv.parseRows(data);
-
-        var container = d3.select("body")
-            .append("table")
-            .attr("id","datos")
-
-            .selectAll("tr")
-                .data(parsedCSV).enter()
-                .append("tr")
-
-            .selectAll("td")
-                .data(function(d) { return d; }).enter()
-                .append("td")
-                .text(function(d) { return d; });
-    });
-
     $(document).ready(function() {
-        $('#datos').DataTable();
+        $('#chartData').DataTable();
     } );
     </script>
-
-
 </head>
 <body>
 
@@ -178,11 +209,15 @@
 <!-- End page content -->
 </div>
 
+<div id="tableContainer">
+  <table id="chartData" class="display">
+  </table>
+</div>
+
 <!-- Footer -->
 <footer class="w3-center w3-black w3-padding-10">
   <p>Powered by <a href="https://www.w3schools.com/w3css/default.asp" title="W3.CSS" target="_blank" class="w3-hover-text-green">tuvi</a></p>
 </footer>
-
 
 <script src="https://canvasjs.com/assets/script/canvasjs.min.js"> </script>
 </body>
