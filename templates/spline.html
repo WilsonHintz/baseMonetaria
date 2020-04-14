@@ -84,7 +84,6 @@
         chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-3,lastDate.getDate());
         chart.render();
         findExtremeDataPointsPassed();
-        addTable(chart);
         //var axisXMin = chart.axisX[0].get("minimum");
         var axisXMin = chart.axisX[0].get("viewportMinimum");
         var axisXMax = chart.axisX[0].get("maximum");
@@ -103,6 +102,7 @@
             var lastDate = chart.options.data[0].dataPoints[dpsLength-1].x;
             chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-12,lastDate.getDate());
             chart.render();
+            setDatePickers();
             findExtremeDataPointsPassed();
         }
 
@@ -112,6 +112,7 @@
             chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-1,lastDate.getDate());
             chart.render();
             var result = findExtremeDataPointsPassed();
+            setDatePickers();
             console.log(result)
         }
 
@@ -122,6 +123,14 @@
             chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-xValue,lastDate.getDate());
             chart.render();
             findExtremeDataPointsPassed();
+            setDatePickers();
+        }
+
+        function setDatePickers() {
+            var viewportMinimum = chart.axisX[0].get("viewportMinimum");
+            var viewportMaximum = chart.axisX[0].get("viewportMaximum");
+            document.getElementById("fromDate").value = CanvasJS.formatDate(viewportMinimum, "DD MMM YYYY");
+            document.getElementById("toDate").value = CanvasJS.formatDate(viewportMaximum, "DD MMM YYYY");
         }
 
         $( function() {
@@ -134,26 +143,28 @@
         $("#date-selector").change( function() {
             var minValue = $( "#fromDate" ).val();
             var maxValue = $ ( "#toDate" ).val();
-            if(new Date(minValue).getTime() < new Date(maxValue).getTime()){
-                chart.axisX[0].set("minimum", new Date(minValue));
-                chart.axisX[0].set("maximum", new Date(maxValue));
+            if(new Date(minValue).getTime() < new Date(maxValue).getTime() && new Date(maxValue).getTime() < axisXMax ){
+                //chart.axisX[0].set("minimum", new Date(minValue));
+                chart.options.axisX.viewportMinimum = new Date(minValue);
+                //chart.axisX[0].set("maximum", new Date(maxValue));
+                chart.options.axisX.viewportMaximum = new Date(maxValue);
                 chart.render();
                 findExtremeDataPointsPassed();
             }
         });
 
-        function addTable(chart){
-	        var tableData = "";
-	        for(var i = 0; i < chart.options.data[0].dataPoints.length; i++) {
-  		        tableData += "<tr>";
+<!--        function addTable(chart){-->
+<!--	        var tableData = "";-->
+<!--	        for(var i = 0; i < chart.options.data[0].dataPoints.length; i++) {-->
+<!--  		        tableData += "<tr>";-->
 
-                    tableData += ("<td>" + chart.options.data[0].dataPoints[i].x.toISOString().slice(0, 10) +"</td>");
-                    tableData += ("<td>" + chart.options.data[0].dataPoints[i].y +"</td>")
+<!--                    tableData += ("<td>" + chart.options.data[0].dataPoints[i].x.toISOString().slice(0, 10) +"</td>");-->
+<!--                    tableData += ("<td>" + chart.options.data[0].dataPoints[i].y +"</td>")-->
 
-                tableData += "</tr>";
-            }
-            $("#chartData").append(tableData)
-        }
+<!--                tableData += "</tr>";-->
+<!--            }-->
+<!--            $("#chartData").append(tableData)-->
+<!--        }-->
 
         function findExtremeDataPoints(e) {
             var chart = e.chart;
@@ -182,6 +193,7 @@
             chart.options.axisY.viewportMinimum = (chart.options.data[0].dataPoints[minXIndex].y)*0.90;
             chart.options.axisY.viewportMaximum = (chart.options.data[0].dataPoints[maxXIndex].y)*1.15;
             chart.render();
+            setDatePickers()
         }
 
         function findExtremeDataPointsPassed() {
@@ -227,40 +239,29 @@
 </head>
 <body>
 
-
-<!-- Page content -->
-<div class="w3-content w3-padding" style="max-width:1564px">
-
-    <div id="chartContainer" style="height: 370px; width: 100%;"></div>
-
-    <button id="renderButtonYear">Un Año</button>
-    <button id="renderButtonMonth">Un Mes</button>
-    <input id="xValue" type="number" step="any" placeholder="Cantidad de Meses">
-    <button id="renderButtonValue">Ver</button>
-
     <div id="update-nav">
+        <div id="chartContainer" style="height: 370px; width: 100%;"></div>
+        <button id="renderButtonYear">Un Año</button>
+        <button id="renderButtonMonth">Un Mes</button>
+        <input id="xValue" type="number" step="any" placeholder="Cantidad de Meses">
+        <button id="renderButtonValue">Ver</button>
+
         <div id="date-selector" class="">
             From:<input type="text" id="fromDate"  class="ui-widget">
             To:<input type="text" id="toDate"  class="ui-widget">
         </div>
+        <p><a href="https://www.bcra.gob.ar/PublicacionesEstadisticas/Principales_variables.asp">Fuente: BCRA</a></p>
     </div>
 
 
-<!-- End page content -->
-</div>
-
-  <table id="chartData" class="display" width="75%">
-  <thead>
+    <table id="chartData" class="display" width="75%">
+        <thead>
             <tr>
                 <th>Fecha</th>
                 <th>Valor</th>
             </tr>
         </thead>
-  </table>
+    </table>
 
-<!-- Footer -->
-<footer class="w3-center w3-black w3-padding-10">
-  <p>Powered by <a href="https://www.w3schools.com/w3css/default.asp" title="W3.CSS" target="_blank" class="w3-hover-text-green">tuvi</a></p>
-</footer>
 </body>
 </html>
