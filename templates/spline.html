@@ -59,7 +59,11 @@
             axisY: {
                 title: "Base Monetaria Total (Millones pesos)",
                 titleFontSize: 15,
-                includeZero: false
+                includeZero: false,
+                stripLines: [{
+			        value: 3366500,
+			        label: "ultimo"
+		        }]
             },
             axisX: {
                 valueFormatString: "DD-MM-YY",
@@ -192,6 +196,7 @@
             console.log("Datapoints: "); console.log(minDps); console.log(maxDps)
             chart.options.axisY.viewportMinimum = (chart.options.data[0].dataPoints[minXIndex].y)*0.90;
             chart.options.axisY.viewportMaximum = (chart.options.data[0].dataPoints[maxXIndex].y)*1.15;
+            chart.options.axisY.stripLines[0].value = chart.options.data[0].dataPoints[maxXIndex].y;
             chart.render();
             setDatePickers()
         }
@@ -223,6 +228,8 @@
             console.log("Datapoints: "); console.log(minDps); console.log(maxDps)
             chart.options.axisY.viewportMinimum = (chart.options.data[0].dataPoints[minXIndex].y)*0.90;
             chart.options.axisY.viewportMaximum = (chart.options.data[0].dataPoints[maxXIndex].y)*1.15;
+            chart.options.axisY.stripLines[0].value = chart.options.data[0].dataPoints[maxXIndex].y;
+
             points.push({minO:chart.options.data[0].dataPoints[minXIndex].y, minC: chart.options.axisY.viewportMinimum})
             points.push(chart.options.axisY.viewportMaximum)
 
@@ -240,7 +247,7 @@
 <body>
 
     <div id="update-nav">
-        <div id="chartContainer" style="height: 370px; width: 100%;"></div>
+        <div id="chartContainer" style="height: 400px; width: 95%;"></div>
         <button id="renderButtonYear">Un Año</button>
         <button id="renderButtonMonth">Un Mes</button>
         <input id="xValue" type="number" step="any" placeholder="Cantidad de Meses">
