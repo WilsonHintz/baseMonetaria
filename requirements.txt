@@ -3,3 +3,4 @@ Pandas
 bs4
 requests
 gunicorn
+boto3

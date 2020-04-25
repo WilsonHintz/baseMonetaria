@@ -2,10 +2,11 @@ import csv
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
+import boto3
 
 payload = {
 'fecha_desde':'2000-01-01',
-'fecha_hasta':'2020-04-17',
+'fecha_hasta':'2020-04-21',
 'B1':'Enviar',
 'primeravez':'1',
 'serie':'250',
@@ -50,4 +51,11 @@ df = pd.read_csv('middle.csv', parse_dates=['fecha'], usecols=('fecha', 'Base_Mo
 df = df.replace('\.', '', regex=True).astype(str)
 df['fecha'] = pd.to_datetime(df.fecha)
 df.to_csv('static/tablaDatos.csv',index=False)
+
+s3_client = boto3.client('s3')
+object_name = 'static/tablaDatos.csv'
+file_name = 'static/tablaDatos.csv'
+response = s3_client.upload_file(file_name, 'basemon', object_name)
+print(response)
+
 

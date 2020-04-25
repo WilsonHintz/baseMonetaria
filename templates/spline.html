@@ -44,7 +44,7 @@
             }
         return dataPoints;
     }
-    $.get("/static/output.csv", function (data) {
+    $.get("https://basemon.s3-sa-east-1.amazonaws.com/static/output.csv", function (data) {
 
         var chart = new CanvasJS.Chart("chartContainer", {
             theme: "light2", // "light2", "dark1", "dark2"
