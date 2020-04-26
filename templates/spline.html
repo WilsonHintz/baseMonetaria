@@ -62,7 +62,7 @@
                 includeZero: false,
                 stripLines: [{
 			        value: 3366500,
-			        label: "ultimo"
+			        label: "Máximo"
 		        }]
             },
             axisX: {
@@ -174,18 +174,20 @@
             var chart = e.chart;
             var minXIndex = Infinity, maxXIndex = -Infinity;
             var minDps, maxDps;
+            var localmax = 0;
 
-            var viewportMinimum = chart.axisX[0].get("viewportMinimum");
-            var viewportMaximum = chart.axisX[0].get("viewportMaximum");
+            var viewportMinimum = chart.axisY[0].get("viewportMinimum");
+            var viewportMaximum = chart.axisY[0].get("viewportMaximum");
 
             for(var j = 0; j < chart.options.data[0].dataPoints.length; j++) {
-                if(chart.options.data[0].dataPoints[j].x >= viewportMinimum) {
+                if(chart.options.data[0].dataPoints[j].y >= viewportMinimum) {
                     minXIndex = j;
                     break;
                 }
             }
             for(var j = 0; j < chart.options.data[0].dataPoints.length; j++) {
-                if(chart.options.data[0].dataPoints[j].x <= viewportMaximum) {
+                if(chart.options.data[0].dataPoints[j].y >= localmax) {
+                    localmax = chart.options.data[0].dataPoints[j].y;
                     maxXIndex = j;
                 }
             }
@@ -204,20 +206,21 @@
         function findExtremeDataPointsPassed() {
             var minXIndex = Infinity, maxXIndex = -Infinity;
             var minDps, maxDps;
+            var localmax = 0;
             var points = [];
 
-            var viewportMinimum = chart.axisX[0].get("viewportMinimum");
-            var viewportMaximum = chart.axisX[0].get("viewportMaximum");
-
+            var viewportMinimum = chart.axisY[0].get("viewportMinimum");
+            var viewportMaximum = chart.axisY[0].get("viewportMaximum");
 
             for(var j = 0; j < chart.options.data[0].dataPoints.length; j++) {
-                if(chart.options.data[0].dataPoints[j].x >= viewportMinimum) {
+                if(chart.options.data[0].dataPoints[j].y >= viewportMinimum) {
                     minXIndex = j;
                     break;
                 }
             }
             for(var j = 0; j < chart.options.data[0].dataPoints.length; j++) {
-                if(chart.options.data[0].dataPoints[j].x <= viewportMaximum) {
+                if(chart.options.data[0].dataPoints[j].y >= localmax) {
+                    localmax = chart.options.data[0].dataPoints[j].y;
                     maxXIndex = j;
                 }
             }
