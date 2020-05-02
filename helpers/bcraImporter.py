@@ -69,8 +69,8 @@ def importBase(fecha):
     file_name_tabla = 'static/tablaDatos.csv'
     file_name_output = 'static/output.csv'
 
-    #response = s3_client.upload_file(file_name_tabla, 'basemon', object_name_tabla_bkp)
-    #response = s3_client.upload_file(file_name_output, 'basemon', object_name_output)
+    response = s3_client.upload_file(file_name_tabla, 'basemon', object_name_tabla_bkp)
+    response = s3_client.upload_file(file_name_output, 'basemon', object_name_output)
 
     presigned_post = s3_client.generate_presigned_post(
         Bucket=S3_BUCKET,

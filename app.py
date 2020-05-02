@@ -1,4 +1,4 @@
-from flask import Flask, Markup, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify
 from helpers import bcraImporter
 app = Flask(__name__)
 
