@@ -5,10 +5,11 @@ import pandas as pd
 import boto3
 from datetime import datetime
 
-def importBase():
+def importBase(fecha):
+    #fecha = 2020-04-30
     payload = {
         'fecha_desde': '2000-01-01',
-        'fecha_hasta': '2020-04-21',
+        'fecha_hasta': fecha,
         'B1': 'Enviar',
         'primeravez': '1',
         'serie': '250',
