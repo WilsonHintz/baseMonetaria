@@ -1,9 +1,12 @@
 import csv
+import json
+
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 import boto3
 from datetime import datetime
+import os
 
 def importBase(fecha):
     #fecha = 2020-04-30
@@ -58,7 +61,7 @@ def importBase(fecha):
     now = datetime.now()
     # dd/mm/YY H:M:S
     dt_string = now.strftime("%d-%m-%Y, %H:%M:%S")
-
+    S3_BUCKET = os.environ.get('S3_BUCKET')
     s3_client = boto3.client('s3')
 
     object_name_tabla_bkp = 'imports/tablaDatos' + dt_string + '.csv'
@@ -66,10 +69,24 @@ def importBase(fecha):
     file_name_tabla = 'static/tablaDatos.csv'
     file_name_output = 'static/output.csv'
 
-    response = s3_client.upload_file(file_name_tabla, 'basemon', object_name_tabla_bkp)
-    response = s3_client.upload_file(file_name_output, 'basemon', object_name_output)
+    #response = s3_client.upload_file(file_name_tabla, 'basemon', object_name_tabla_bkp)
+    #response = s3_client.upload_file(file_name_output, 'basemon', object_name_output)
 
-    return response
+    presigned_post = s3_client.generate_presigned_post(
+        Bucket=S3_BUCKET,
+        Key=file_name_output,
+        Fields={"acl": "public-read", "Content-Type": 'csv'},
+        Conditions=[
+            {"acl": "public-read"},
+            {"Content-Type": 'csv'}
+        ],
+        ExpiresIn=3600
+    )
+
+    return json.dumps({
+        'data': presigned_post,
+        'url': 'https://%s.s3.amazonaws.com/%s' % (S3_BUCKET, file_name_output)
+    })
 
 def getCsv():
     s3_client = boto3.resource('s3')
