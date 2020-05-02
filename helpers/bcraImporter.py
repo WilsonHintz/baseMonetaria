@@ -8,8 +8,9 @@ import boto3
 from datetime import datetime
 import os
 
+
 def importBase(fecha):
-    #fecha = 2020-04-30
+    # fecha = 2020-04-30
     payload = {
         'fecha_desde': '2000-01-01',
         'fecha_hasta': fecha,
@@ -61,32 +62,23 @@ def importBase(fecha):
     now = datetime.now()
     # dd/mm/YY H:M:S
     dt_string = now.strftime("%d-%m-%Y, %H:%M:%S")
-    S3_BUCKET = os.environ.get('S3_BUCKET')
-    s3_client = boto3.client('s3')
 
     object_name_tabla_bkp = 'imports/tablaDatos' + dt_string + '.csv'
     object_name_output = 'static/output.csv'
     file_name_tabla = 'static/tablaDatos.csv'
     file_name_output = 'static/output.csv'
 
-    response = s3_client.upload_file(file_name_tabla, 'basemon', object_name_tabla_bkp)
-    response = s3_client.upload_file(file_name_output, 'basemon', object_name_output)
+    #response = s3_client.upload_file(file_name_tabla, 'basemon', object_name_tabla_bkp)
+    #response = s3_client.upload_file(file_name_output, 'basemon', object_name_output)
 
-    presigned_post = s3_client.generate_presigned_post(
-        Bucket=S3_BUCKET,
-        Key=file_name_output,
-        Fields={"acl": "public-read", "Content-Type": 'csv'},
-        Conditions=[
-            {"acl": "public-read"},
-            {"Content-Type": 'csv'}
-        ],
-        ExpiresIn=3600
-    )
+    urlAWS = "https://eji6ygw2hd.execute-api.sa-east-1.amazonaws.com/v1/uploadcsv"
+    with open(file_name_output, 'rb') as WA:
+        response = requests.post(urlAWS,
+                                 data=WA,
+                                 headers={'content-type': 'application/csv'})
 
-    return json.dumps({
-        'data': presigned_post,
-        'url': 'https://%s.s3.amazonaws.com/%s' % (S3_BUCKET, file_name_output)
-    })
+    return response
+
 
 def getCsv():
     s3_client = boto3.resource('s3')
@@ -95,5 +87,3 @@ def getCsv():
     response = s3_client.meta.client.download_file('basemon', object_name, file_name)
     print(response)
     return response
-
-

@@ -13,7 +13,7 @@ def pie():
 def execImport():
     result = bcraImporter.importBase(request.args.get('fecha'))
     print(request.args.get('fecha'))
-    resp = jsonify(result)
+    resp = jsonify("result")
     resp.status_code = 200
     return resp
 
