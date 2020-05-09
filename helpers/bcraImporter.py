@@ -1,12 +1,8 @@
 import csv
-import json
-
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 import boto3
-from datetime import datetime
-import os
 
 
 def importBase(fecha):
@@ -58,25 +54,13 @@ def importBase(fecha):
     df = df.replace('\.', '', regex=True).astype(str)
     df['fecha'] = pd.to_datetime(df.fecha)
     df.to_csv('static/tablaDatos.csv', index=False)
-
-    now = datetime.now()
-    # dd/mm/YY H:M:S
-    dt_string = now.strftime("%d-%m-%Y, %H:%M:%S")
-
-    object_name_tabla_bkp = 'imports/tablaDatos' + dt_string + '.csv'
-    object_name_output = 'static/output.csv'
-    file_name_tabla = 'static/tablaDatos.csv'
     file_name_output = 'static/output.csv'
-
-    #response = s3_client.upload_file(file_name_tabla, 'basemon', object_name_tabla_bkp)
-    #response = s3_client.upload_file(file_name_output, 'basemon', object_name_output)
 
     urlAWS = "https://eji6ygw2hd.execute-api.sa-east-1.amazonaws.com/v1/uploadcsv"
     with open(file_name_output, 'rb') as WA:
         response = requests.post(urlAWS,
                                  data=WA,
                                  headers={'content-type': 'application/csv'})
-
     return response
 
 

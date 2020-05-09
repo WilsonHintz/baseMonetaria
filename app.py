@@ -9,13 +9,15 @@ def pie():
     pie_datas = datas
     return render_template('spline.html', title='Bitcoin Monthly Price in USD', max=17000, datas=pie_datas)
 
+
 @app.route('/import', methods=['GET'])
 def execImport():
     result = bcraImporter.importBase(request.args.get('fecha'))
     print(request.args.get('fecha'))
-    resp = jsonify("result")
-    resp.status_code = 200
-    return resp
+    #resp = jsonify("result")
+    #resp.status_code = 200
+    return result
+
 
 @app.route('/getCsv')
 def downloadCsv():
