@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 from helpers import bcraImporter
+import json
 app = Flask(__name__)
 
 datas={}
@@ -13,10 +14,12 @@ def pie():
 @app.route('/import', methods=['GET'])
 def execImport():
     result = bcraImporter.importBase(request.args.get('fecha'))
+    content = json.loads(result.content)
+
     print(request.args.get('fecha'))
     #resp = jsonify("result")
     #resp.status_code = 200
-    return result
+    return content
 
 
 @app.route('/getCsv')
