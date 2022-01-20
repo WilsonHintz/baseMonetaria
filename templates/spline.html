@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Base Monetaria</title>
@@ -12,267 +13,333 @@
     <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
     <style>
-          #update-nav {
-      width: 100%;
-      height: 30px;
-    }
-    #range-selector {
-      width: 50%;
-      float: left;
-    }
-    #date-selector {
-      width: 50%;
-      float: right;
-    }
+        #update-nav {
+            width: 100%;
+        }
+
+        #chartContainer {
+            pointer-events: inherit;
+            height: 400px;
+            width: 90%;
+            padding-bottom: 300px;
+            position: relative;
+
+        }
+
+        #controls {
+            position: relative;
+        }
+
+        #range-selector {
+            width: 50%;
+            float: left;
+        }
+
+        #date-selector {
+            width: 50%;
+            float: right;
+        }
+
+        #fuente-bcra {}
+
+        .card {
+            /* Add shadows to create the "card" effect */
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+            transition: 0.3s;
+            width: auto;
+        }
+
+        /* On mouse-over, add a deeper shadow */
+        .card:hover {
+            box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        /* Add some padding inside the card container */
+        .container {
+            padding: 2px 16px;
+        }
     </style>
+
     <script type="text/javascript">
-        window.onload = function () {
-    var dataPoints = [];
+        window.onload = function() {
+            var dataPoints = [];
 
-    function getDataPointsFromCSV(csv) {
-        var dataPoints = csvLines = points = [];
-        csvLines = csv.split(/[\r?\n|\r|\n]+/);
+            function getDataPointsFromCSV(csv) {
+                var dataPoints = csvLines = points = [];
+                csvLines = csv.split(/[\r?\n|\r|\n]+/);
 
-        for (var i = 0; i < csvLines.length; i++)
-            if (csvLines[i].length > 0) {
-                points = csvLines[i].split(";");
-                datex = new Date(points[0]);
-                //datex.setMonth(datex.getMonth() -1);
-                dataPoints.push({
-                    x: datex,
-                    y: parseFloat(points[1])
-                });
+                for (var i = 0; i < csvLines.length; i++)
+                    if (csvLines[i].length > 0) {
+                        points = csvLines[i].split(";");
+                        datex = new Date(points[0]);
+                        //datex.setMonth(datex.getMonth() -1);
+                        dataPoints.push({
+                            x: datex,
+                            y: parseFloat(points[1])
+                        });
+                    }
+                return dataPoints;
             }
-        return dataPoints;
-    }
-    $.get("https://basemon.s3-sa-east-1.amazonaws.com/static/output.csv", function (data) {
+            $.get("https://basemon.s3-sa-east-1.amazonaws.com/static/output.csv", function(data) {
 
-        var chart = new CanvasJS.Chart("chartContainer", {
-            theme: "light2", // "light2", "dark1", "dark2"
-            animationEnabled: true, // change to true
-            zoomEnabled: true,
-            rangeChanging: function(e){
-                findExtremeDataPoints(e);
-             },
-            title: {
-                text: "Base Monetaria Total en Pesos"
-            },
-            axisY: {
-                title: "Base Monetaria Total (Millones pesos)",
-                titleFontSize: 15,
-                includeZero: false,
-                stripLines: [{
-			        value: 3366500,
-			        label: "Máximo"
-		        }]
-            },
-            axisX: {
-                valueFormatString: "DD-MM-YY",
-                gridThickness: 2,
-                labelAngle: -50,
-                title: "Tiempo",
-                titleFontSize: 15
-            },
-            data: [{
-                // Change type to "bar", "area", "spline", "pie",etc.
-                type: "splineArea",
-                markerType: "circle",
-                markerSize: 4,
-                fillOpacity: .4,
-                dataPoints: getDataPointsFromCSV(data)
-            }]
-        });
+                var chart = new CanvasJS.Chart("chartContainer", {
+                    theme: "light2", // "light2", "dark1", "dark2"
+                    animationEnabled: true, // change to true
+                    zoomEnabled: true,
+                    rangeChanging: function(e) {
+                        findExtremeDataPoints(e);
+                    },
+                    title: {
+                        text: "Base Monetaria Total en Pesos"
+                    },
+                    axisY: {
+                        title: "Base Monetaria Total (Millones pesos)",
+                        titleFontSize: 15,
+                        includeZero: false,
+                        stripLines: [{
+                            value: 3366500,
+                            label: "Máximo"
+                        }]
+                    },
+                    axisX: {
+                        valueFormatString: "DD-MM-YY",
+                        gridThickness: 2,
+                        labelAngle: -50,
+                        title: "Tiempo",
+                        titleFontSize: 15
+                    },
+                    data: [{
+                        // Change type to "bar", "area", "spline", "pie",etc.
+                        type: "splineArea",
+                        markerType: "circle",
+                        markerSize: 4,
+                        fillOpacity: .4,
+                        dataPoints: getDataPointsFromCSV(data)
+                    }]
+                });
 
-        //Date manipulation and initialize
-        var dpsLength = chart.options.data[0].dataPoints.length;
-        var lastDate = chart.options.data[0].dataPoints[dpsLength-1].x;
-        chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-3,lastDate.getDate());
-        chart.render();
-        findExtremeDataPointsPassed();
-        //var axisXMin = chart.axisX[0].get("minimum");
-        var axisXMin = chart.axisX[0].get("viewportMinimum");
-        var axisXMax = chart.axisX[0].get("maximum");
-
-        var renderButtonYear = document.getElementById("renderButtonYear");
-        renderButtonYear.addEventListener("click", editViewportYear);
-
-        var renderButtonMonth = document.getElementById("renderButtonMonth");
-        renderButtonMonth.addEventListener("click", editViewportMonth);
-
-        var renderButtonValue = document.getElementById("renderButtonValue");
-        renderButtonValue.addEventListener("click", editViewportValue);
-
-        function editViewportYear() {
-            var dpsLength = chart.options.data[0].dataPoints.length;
-            var lastDate = chart.options.data[0].dataPoints[dpsLength-1].x;
-            chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-12,lastDate.getDate());
-            chart.render();
-            setDatePickers();
-            findExtremeDataPointsPassed();
-        }
-
-        function editViewportMonth() {
-            var dpsLength = chart.options.data[0].dataPoints.length;
-            var lastDate = chart.options.data[0].dataPoints[dpsLength-1].x;
-            chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-1,lastDate.getDate());
-            chart.render();
-            var result = findExtremeDataPointsPassed();
-            setDatePickers();
-            console.log(result)
-        }
-
-        function editViewportValue() {
-            var dpsLength = chart.options.data[0].dataPoints.length;
-            var lastDate = chart.options.data[0].dataPoints[dpsLength-1].x;
-            xValue = Number(document.getElementById("xValue").value);
-            chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(),lastDate.getMonth()-xValue,lastDate.getDate());
-            chart.render();
-            findExtremeDataPointsPassed();
-            setDatePickers();
-        }
-
-        function setDatePickers() {
-            var viewportMinimum = chart.axisX[0].get("viewportMinimum");
-            var viewportMaximum = chart.axisX[0].get("viewportMaximum");
-            document.getElementById("fromDate").value = CanvasJS.formatDate(viewportMinimum, "DD MMM YYYY");
-            document.getElementById("toDate").value = CanvasJS.formatDate(viewportMaximum, "DD MMM YYYY");
-        }
-
-        $( function() {
-              $("#fromDate").val(CanvasJS.formatDate(axisXMin, "DD MMM YYYY"));
-              $("#toDate").val(CanvasJS.formatDate(axisXMax, "DD MMM YYYY"));
-              $("#fromDate").datepicker({dateFormat: "d M yy"});
-              $("#toDate").datepicker({dateFormat: "d M yy"});
-        });
-
-        $("#date-selector").change( function() {
-            var minValue = $( "#fromDate" ).val();
-            var maxValue = $ ( "#toDate" ).val();
-            if(new Date(minValue).getTime() < new Date(maxValue).getTime() && new Date(maxValue).getTime() < axisXMax ){
-                //chart.axisX[0].set("minimum", new Date(minValue));
-                chart.options.axisX.viewportMinimum = new Date(minValue);
-                //chart.axisX[0].set("maximum", new Date(maxValue));
-                chart.options.axisX.viewportMaximum = new Date(maxValue);
+                //Date manipulation and initialize
+                var dpsLength = chart.options.data[0].dataPoints.length;
+                var lastDate = chart.options.data[0].dataPoints[dpsLength - 1].x;
+                chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(), lastDate.getMonth() - 3, lastDate.getDate());
                 chart.render();
                 findExtremeDataPointsPassed();
-            }
-        });
+                //var axisXMin = chart.axisX[0].get("minimum");
+                var axisXMin = chart.axisX[0].get("viewportMinimum");
+                var axisXMax = chart.axisX[0].get("maximum");
 
-<!--        function addTable(chart){-->
-<!--	        var tableData = "";-->
-<!--	        for(var i = 0; i < chart.options.data[0].dataPoints.length; i++) {-->
-<!--  		        tableData += "<tr>";-->
+                var renderButtonYear = document.getElementById("renderButtonYear");
+                renderButtonYear.addEventListener("click", editViewportYear);
 
-<!--                    tableData += ("<td>" + chart.options.data[0].dataPoints[i].x.toISOString().slice(0, 10) +"</td>");-->
-<!--                    tableData += ("<td>" + chart.options.data[0].dataPoints[i].y +"</td>")-->
+                var renderButtonMonth = document.getElementById("renderButtonMonth");
+                renderButtonMonth.addEventListener("click", editViewportMonth);
 
-<!--                tableData += "</tr>";-->
-<!--            }-->
-<!--            $("#chartData").append(tableData)-->
-<!--        }-->
+                var renderButtonValue = document.getElementById("renderButtonValue");
+                renderButtonValue.addEventListener("click", editViewportValue);
 
-        function findExtremeDataPoints(e) {
-            var chart = e.chart;
-            var minXIndex = Infinity, maxXIndex = -Infinity;
-            var minDps, maxDps;
-            var localmax = 0;
-
-            var viewportMinimum = chart.axisY[0].get("viewportMinimum");
-            var viewportMaximum = chart.axisY[0].get("viewportMaximum");
-
-            for(var j = 0; j < chart.options.data[0].dataPoints.length; j++) {
-                if(chart.options.data[0].dataPoints[j].y >= viewportMinimum) {
-                    minXIndex = j;
-                    break;
+                function editViewportYear() {
+                    var dpsLength = chart.options.data[0].dataPoints.length;
+                    var lastDate = chart.options.data[0].dataPoints[dpsLength - 1].x;
+                    chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(), lastDate.getMonth() - 12, lastDate.getDate());
+                    chart.render();
+                    setDatePickers();
+                    findExtremeDataPointsPassed();
                 }
-            }
-            for(var j = 0; j < chart.options.data[0].dataPoints.length; j++) {
-                if(chart.options.data[0].dataPoints[j].y >= localmax) {
-                    localmax = chart.options.data[0].dataPoints[j].y;
-                    maxXIndex = j;
-                }
-            }
-            minDps = chart.options.data[0].dataPoints[minXIndex];
-            maxDps = chart.options.data[0].dataPoints[maxXIndex];
 
-            console.log("Datapoints index: " + minXIndex + ", " + maxXIndex)
-            console.log("Datapoints: "); console.log(minDps); console.log(maxDps)
-            chart.options.axisY.viewportMinimum = (chart.options.data[0].dataPoints[minXIndex].y)*0.90;
-            chart.options.axisY.viewportMaximum = (chart.options.data[0].dataPoints[maxXIndex].y)*1.15;
-            chart.options.axisY.stripLines[0].value = chart.options.data[0].dataPoints[maxXIndex].y;
-            chart.render();
-            setDatePickers()
+                function editViewportMonth() {
+                    var dpsLength = chart.options.data[0].dataPoints.length;
+                    var lastDate = chart.options.data[0].dataPoints[dpsLength - 1].x;
+                    chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(), lastDate.getMonth() - 1, lastDate.getDate());
+                    chart.render();
+                    var result = findExtremeDataPointsPassed();
+                    setDatePickers();
+                    console.log(result)
+                }
+
+                function editViewportValue() {
+                    var dpsLength = chart.options.data[0].dataPoints.length;
+                    var lastDate = chart.options.data[0].dataPoints[dpsLength - 1].x;
+                    xValue = Number(document.getElementById("xValue").value);
+                    chart.options.axisX.viewportMinimum = new Date(lastDate.getFullYear(), lastDate.getMonth() - xValue, lastDate.getDate());
+                    chart.render();
+                    findExtremeDataPointsPassed();
+                    setDatePickers();
+                }
+
+                function setDatePickers() {
+                    var viewportMinimum = chart.axisX[0].get("viewportMinimum");
+                    var viewportMaximum = chart.axisX[0].get("viewportMaximum");
+                    document.getElementById("fromDate").value = CanvasJS.formatDate(viewportMinimum, "DD MMM YYYY");
+                    document.getElementById("toDate").value = CanvasJS.formatDate(viewportMaximum, "DD MMM YYYY");
+                }
+
+                $(function() {
+                    $("#fromDate").val(CanvasJS.formatDate(axisXMin, "DD MMM YYYY"));
+                    $("#toDate").val(CanvasJS.formatDate(axisXMax, "DD MMM YYYY"));
+                    $("#fromDate").datepicker({
+                        dateFormat: "d M yy"
+                    });
+                    $("#toDate").datepicker({
+                        dateFormat: "d M yy"
+                    });
+                });
+
+                $("#date-selector").change(function() {
+                    var minValue = $("#fromDate").val();
+                    var maxValue = $("#toDate").val();
+                    if (new Date(minValue).getTime() < new Date(maxValue).getTime() && new Date(maxValue).getTime() < axisXMax) {
+                        //chart.axisX[0].set("minimum", new Date(minValue));
+                        chart.options.axisX.viewportMinimum = new Date(minValue);
+                        //chart.axisX[0].set("maximum", new Date(maxValue));
+                        chart.options.axisX.viewportMaximum = new Date(maxValue);
+                        chart.render();
+                        findExtremeDataPointsPassed();
+                    }
+                });
+
+                <
+                !-- function addTable(chart) {
+                    -- >
+                    <
+                    !--
+                    var tableData = "";
+                    -- >
+                    <
+                    !--
+                    for (var i = 0; i < chart.options.data[0].dataPoints.length; i++) {
+                        -- >
+                        <
+                        !--tableData += "<tr>";
+                        -- >
+
+                        <
+                        !--tableData += ("<td>" + chart.options.data[0].dataPoints[i].x.toISOString().slice(0, 10) + "</td>");
+                        -- >
+                        <
+                        !--tableData += ("<td>" + chart.options.data[0].dataPoints[i].y + "</td>") -- >
+
+                            <
+                            !--tableData += "</tr>";
+                        -- >
+                        <
+                        !--
+                    }-- >
+                    <
+                    !--$("#chartData").append(tableData) -- >
+                        <
+                        !--
+                }-- >
+
+                function findExtremeDataPoints(e) {
+                    var chart = e.chart;
+                    var minXIndex = Infinity,
+                        maxXIndex = -Infinity;
+                    var minDps, maxDps;
+                    var localmax = 0;
+
+                    var viewportMinimum = chart.axisY[0].get("viewportMinimum");
+                    var viewportMaximum = chart.axisY[0].get("viewportMaximum");
+
+                    for (var j = 0; j < chart.options.data[0].dataPoints.length; j++) {
+                        if (chart.options.data[0].dataPoints[j].y >= viewportMinimum) {
+                            minXIndex = j;
+                            break;
+                        }
+                    }
+                    for (var j = 0; j < chart.options.data[0].dataPoints.length; j++) {
+                        if (chart.options.data[0].dataPoints[j].y >= localmax) {
+                            localmax = chart.options.data[0].dataPoints[j].y;
+                            maxXIndex = j;
+                        }
+                    }
+                    minDps = chart.options.data[0].dataPoints[minXIndex];
+                    maxDps = chart.options.data[0].dataPoints[maxXIndex];
+
+                    console.log("Datapoints index: " + minXIndex + ", " + maxXIndex)
+                    console.log("Datapoints: ");
+                    console.log(minDps);
+                    console.log(maxDps)
+                    chart.options.axisY.viewportMinimum = (chart.options.data[0].dataPoints[minXIndex].y) * 0.90;
+                    chart.options.axisY.viewportMaximum = (chart.options.data[0].dataPoints[maxXIndex].y) * 1.15;
+                    chart.options.axisY.stripLines[0].value = chart.options.data[0].dataPoints[maxXIndex].y;
+                    chart.render();
+                    setDatePickers()
+                }
+
+                function findExtremeDataPointsPassed() {
+                    var minXIndex = Infinity,
+                        maxXIndex = -Infinity;
+                    var minDps, maxDps;
+                    var localmax = 0;
+                    var points = [];
+
+                    var viewportMinimum = chart.axisY[0].get("viewportMinimum");
+                    var viewportMaximum = chart.axisY[0].get("viewportMaximum");
+
+                    for (var j = 0; j < chart.options.data[0].dataPoints.length; j++) {
+                        if (chart.options.data[0].dataPoints[j].y >= viewportMinimum) {
+                            minXIndex = j;
+                            break;
+                        }
+                    }
+                    for (var j = 0; j < chart.options.data[0].dataPoints.length; j++) {
+                        if (chart.options.data[0].dataPoints[j].y >= localmax) {
+                            localmax = chart.options.data[0].dataPoints[j].y;
+                            maxXIndex = j;
+                        }
+                    }
+                    minDps = chart.options.data[0].dataPoints[minXIndex];
+                    maxDps = chart.options.data[0].dataPoints[maxXIndex];
+
+                    console.log("Datapoints index: " + minXIndex + ", " + maxXIndex)
+                    console.log("Datapoints: ");
+                    console.log(minDps);
+                    console.log(maxDps)
+                    chart.options.axisY.viewportMinimum = (chart.options.data[0].dataPoints[minXIndex].y) * 0.90;
+                    chart.options.axisY.viewportMaximum = (chart.options.data[0].dataPoints[maxXIndex].y) * 1.15;
+                    chart.options.axisY.stripLines[0].value = chart.options.data[0].dataPoints[maxXIndex].y;
+
+                    points.push({
+                        minO: chart.options.data[0].dataPoints[minXIndex].y,
+                        minC: chart.options.axisY.viewportMinimum
+                    })
+                    points.push(chart.options.axisY.viewportMaximum)
+
+                    chart.render();
+                    return points
+                }
+            });
+
+
+
         }
-
-        function findExtremeDataPointsPassed() {
-            var minXIndex = Infinity, maxXIndex = -Infinity;
-            var minDps, maxDps;
-            var localmax = 0;
-            var points = [];
-
-            var viewportMinimum = chart.axisY[0].get("viewportMinimum");
-            var viewportMaximum = chart.axisY[0].get("viewportMaximum");
-
-            for(var j = 0; j < chart.options.data[0].dataPoints.length; j++) {
-                if(chart.options.data[0].dataPoints[j].y >= viewportMinimum) {
-                    minXIndex = j;
-                    break;
-                }
-            }
-            for(var j = 0; j < chart.options.data[0].dataPoints.length; j++) {
-                if(chart.options.data[0].dataPoints[j].y >= localmax) {
-                    localmax = chart.options.data[0].dataPoints[j].y;
-                    maxXIndex = j;
-                }
-            }
-            minDps = chart.options.data[0].dataPoints[minXIndex];
-            maxDps = chart.options.data[0].dataPoints[maxXIndex];
-
-            console.log("Datapoints index: " + minXIndex + ", " + maxXIndex)
-            console.log("Datapoints: "); console.log(minDps); console.log(maxDps)
-            chart.options.axisY.viewportMinimum = (chart.options.data[0].dataPoints[minXIndex].y)*0.90;
-            chart.options.axisY.viewportMaximum = (chart.options.data[0].dataPoints[maxXIndex].y)*1.15;
-            chart.options.axisY.stripLines[0].value = chart.options.data[0].dataPoints[maxXIndex].y;
-
-            points.push({minO:chart.options.data[0].dataPoints[minXIndex].y, minC: chart.options.axisY.viewportMinimum})
-            points.push(chart.options.axisY.viewportMaximum)
-
-            chart.render();
-            return points
-        }
-    });
-
-
-
-}
     </script>
 
 </head>
+
 <body>
-
     <div id="update-nav">
-        <div id="chartContainer" style="height: 400px; width: 95%;"></div>
-        <button id="renderButtonYear">Un Año</button>
-        <button id="renderButtonMonth">Un Mes</button>
-        <input id="xValue" type="number" step="any" placeholder="Cantidad de Meses">
-        <button id="renderButtonValue">Ver</button>
-
-        <div id="date-selector" class="">
-            From:<input type="text" id="fromDate"  class="ui-widget">
-            To:<input type="text" id="toDate"  class="ui-widget">
+        <div id="chart-wraper">
+            <div id="chartContainer"> </div>
         </div>
-        <p><a href="https://www.bcra.gob.ar/PublicacionesEstadisticas/Principales_variables.asp">Fuente: BCRA</a></p>
+
+        <div id="controls">
+            <button id="renderButtonYear">Un Año</button>
+            <button id="renderButtonMonth">Un Mes</button>
+            <input id="xValue" type="number" step="any" placeholder="Cantidad de Meses">
+            <button id="renderButtonValue">Ver</button>
+
+            <div id="date-selector" class="">
+                From:<input type="text" id="fromDate" class="ui-widget">
+                To:<input type="text" id="toDate" class="ui-widget">
+            </div>
+        </div>
     </div>
 
-
-    <table id="chartData" class="display" width="75%">
-        <thead>
-            <tr>
-                <th>Fecha</th>
-                <th>Valor</th>
-            </tr>
-        </thead>
-    </table>
+    <div class="card" id="fuente-bcra">
+        <a href="https://www.bcra.gob.ar/PublicacionesEstadisticas/Principales_variables.asp">Fuente: BCRA</a>
+    </div>
 
 </body>
+
 </html>
